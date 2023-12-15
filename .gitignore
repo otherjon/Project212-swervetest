@@ -158,3 +158,14 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+
+# Just clone swervepy repo, don't track it in Git
+cloned-swervepy/.editorconfig
+cloned-swervepy/.gitignore
+cloned-swervepy/LICENSE
+cloned-swervepy/README.md
+cloned-swervepy/example_robot/
+cloned-swervepy/pyproject.toml
+cloned-swervepy/swervepy/
+
