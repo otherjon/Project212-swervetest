@@ -161,11 +161,10 @@ cython_debug/
 
 
 # Just clone swervepy repo, don't track it in Git
-cloned-swervepy/.editorconfig
-cloned-swervepy/.gitignore
-cloned-swervepy/LICENSE
-cloned-swervepy/README.md
-cloned-swervepy/example_robot/
-cloned-swervepy/pyproject.toml
-cloned-swervepy/swervepy/
+cloned-swervepy/
+
+# Python venv artifacts
+bin/
+lib64
+pyvenv.cfg
 
