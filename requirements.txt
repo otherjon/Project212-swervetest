@@ -16,6 +16,7 @@ pyntcore==2024.0.0b3.post2
 pytest==7.4.3
 pytest-reraise==2.1.2
 robotpy==2024.0.0b3.post2
+robotpy-commands-v2==2024.0.0b3
 robotpy-hal==2024.0.0b3.post2
 robotpy-halsim-gui==2024.0.0b3.post2
 robotpy-installer==2024.0.0b2
