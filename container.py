@@ -18,10 +18,13 @@ from constants import PHYS, MECH, ELEC, OP, SW
 class RobotContainer:
     def __init__(self):
 
-        # Each component defines a Parameters dataclass with any options applicable to all instances of that component.
-        # For example, wheel circumference is the same for all four modules on a SDS Mk4 drive base, so that is included
-        # in the Parameters class. Motor IDs are different for each instance of a module, so those are not included.
-        drive_params = Falcon500CoaxialDriveComponent.Parameters(
+        # Each component defines a Parameters dataclass with any options
+        # applicable to all instances of that component.  For example, wheel
+        # circumference is the same for all four modules on a SDS Mk4 drive
+        # base, so that is included in the Parameters class.  Motor IDs are
+        # different for each instance of a module, so those are not included.
+        #
+        drive_params = NEOCoaxialDriveComponent.Parameters(
             wheel_circumference=PHYS.wheel_circumference,
             gear_ratio=MECH.swerve_module_propulsion_gearing_ratio,
             max_speed=OP.max_speed,
@@ -39,7 +42,7 @@ class RobotContainer:
             kA=SW.kA,
             invert_motor=MECH.propulsion_motor_inverted,
         )
-        azimuth_params = Falcon500CoaxialAzimuthComponent.Parameters(
+        azimuth_params = NEOCoaxialAzimuthComponent.Parameters(
             gear_ratio=MECH.swerve_module_propulsion_gearing_ratio,
             max_angular_velocity=OP.max_angular_velocity,
             ramp_rate=0,
@@ -53,34 +56,38 @@ class RobotContainer:
             invert_motor=MECH.steering_motor_inverted,
         )
 
-        gyro = PigeonGyro(0, True)
+        # TODO: Create an actual gyro object, once one is connected
+        #gyro = PigeonGyro(0, True)
+        gyro = None
 
-        # When defining module positions for kinematics, +x values represent moving toward the front of the robot, and
-        # +y values represent moving toward the left of the robot
+        # When defining module positions for kinematics, +x values represent
+        # moving toward the front of the robot, and +y values represent
+        # moving toward the left of the robot.
+        #
         modules = (
             # Swerve module implementations are as general as possible (coaxial, differential) but take specific components
             # like Falcon or NEO drive motors as arguments.
             CoaxialSwerveModule(
                 # Pass in general Parameters and module-specific options
-                Falcon500CoaxialDriveComponent(0, drive_params),
+                NEOCoaxialDriveComponent(ELEC.LF_drive_CAN_ID, drive_params),
                 # The Azimuth component included the CANCOder (absolute encoder) because it needs to be able to
                 # reset to absolute position
-                Falcon500CoaxialAzimuthComponent(4, Rotation2d.fromDegrees(0), azimuth_params, AbsoluteCANCoder(0)),
+                NEOCoaxialAzimuthComponent(ELEC.LF_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.LF_encoder_DIO),
                 Translation2d(PHYS.wheel_base / 2, PHYS.track_width / 2),
             ),
             CoaxialSwerveModule(
-                Falcon500CoaxialDriveComponent(1, drive_params),
-                Falcon500CoaxialAzimuthComponent(5, Rotation2d.fromDegrees(0), azimuth_params, AbsoluteCANCoder(1)),
+                NEOCoaxialDriveComponent(ELEC.RF_drive_CAN_ID, drive_params),
+                NEOCoaxialAzimuthComponent(ELEC.RF_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.RF_encoder_DIO),
                 Translation2d(PHYS.wheel_base / 2, -PHYS.track_width / 2),
             ),
             CoaxialSwerveModule(
-                Falcon500CoaxialDriveComponent(2, drive_params),
-                Falcon500CoaxialAzimuthComponent(6, Rotation2d.fromDegrees(0), azimuth_params, AbsoluteCANCoder(2)),
+                NEOCoaxialDriveComponent(ELEC.RB_drive_CAN_ID, drive_params),
+                NEOCoaxialAzimuthComponent(ELEC.RB_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.RB_encoder_DIO),
                 Translation2d(-PHYS.wheel_base / 2, PHYS.track_width / 2),
             ),
             CoaxialSwerveModule(
-                Falcon500CoaxialDriveComponent(3, drive_params),
-                Falcon500CoaxialAzimuthComponent(7, Rotation2d.fromDegrees(0), azimuth_params, AbsoluteCANCoder(3)),
+                NEOCoaxialDriveComponent(ELEC.LB_drive_CAN_ID, drive_params),
+                NEOCoaxialAzimuthComponent(ELEC.LB_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.LB_encoder_DIO),
                 Translation2d(-PHYS.wheel_base / 2, -PHYS.track_width / 2),
             ),
         )
