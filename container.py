@@ -6,11 +6,10 @@ from wpimath.geometry import Translation2d, Rotation2d, Transform3d, Pose2d
 
 from swervepy import u, vision, SwerveDrive, TrajectoryFollowerParameters
 from swervepy.impl import (
-    PigeonGyro,
+    DummyGyro,
     CoaxialSwerveModule,
-    Falcon500CoaxialDriveComponent,
-    Falcon500CoaxialAzimuthComponent,
-    AbsoluteCANCoder,
+    NEOCoaxialDriveComponent,
+    NEOCoaxialAzimuthComponent,
 )
 
 from constants import PHYS, MECH, ELEC, OP, SW
@@ -58,7 +57,7 @@ class RobotContainer:
 
         # TODO: Create an actual gyro object, once one is connected
         #gyro = PigeonGyro(0, True)
-        gyro = None
+        gyro = DummyGyro()
 
         # When defining module positions for kinematics, +x values represent
         # moving toward the front of the robot, and +y values represent
@@ -70,24 +69,24 @@ class RobotContainer:
             CoaxialSwerveModule(
                 # Pass in general Parameters and module-specific options
                 NEOCoaxialDriveComponent(ELEC.LF_drive_CAN_ID, drive_params),
-                # The Azimuth component included the CANCOder (absolute encoder) because it needs to be able to
+                # The Azimuth component included the absolute encoder because it needs to be able to
                 # reset to absolute position
-                NEOCoaxialAzimuthComponent(ELEC.LF_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.LF_encoder_DIO),
+                NEOCoaxialAzimuthComponent(ELEC.LF_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, wpilib.DutyCycleEncoder(ELEC.LF_encoder_DIO),
                 Translation2d(PHYS.wheel_base / 2, PHYS.track_width / 2),
             ),
             CoaxialSwerveModule(
                 NEOCoaxialDriveComponent(ELEC.RF_drive_CAN_ID, drive_params),
-                NEOCoaxialAzimuthComponent(ELEC.RF_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.RF_encoder_DIO),
+                NEOCoaxialAzimuthComponent(ELEC.RF_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, wpilib.DutyCycleEncoder(ELEC.RF_encoder_DIO),
                 Translation2d(PHYS.wheel_base / 2, -PHYS.track_width / 2),
             ),
             CoaxialSwerveModule(
                 NEOCoaxialDriveComponent(ELEC.RB_drive_CAN_ID, drive_params),
-                NEOCoaxialAzimuthComponent(ELEC.RB_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.RB_encoder_DIO),
+                NEOCoaxialAzimuthComponent(ELEC.RB_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, wpilib.DutyCycleEncoder(ELEC.RB_encoder_DIO),
                 Translation2d(-PHYS.wheel_base / 2, PHYS.track_width / 2),
             ),
             CoaxialSwerveModule(
                 NEOCoaxialDriveComponent(ELEC.LB_drive_CAN_ID, drive_params),
-                NEOCoaxialAzimuthComponent(ELEC.LB_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, DutyCycleEncoder(ELEC.LB_encoder_DIO),
+                NEOCoaxialAzimuthComponent(ELEC.LB_steer_CAN_ID, Rotation2d.fromDegrees(0), azimuth_params, wpilib.DutyCycleEncoder(ELEC.LB_encoder_DIO),
                 Translation2d(-PHYS.wheel_base / 2, -PHYS.track_width / 2),
             ),
         )
@@ -97,6 +96,7 @@ class RobotContainer:
         # Define a swerve drive subsystem by passing in a list of SwerveModules and some options
         self.swerve = SwerveDrive(modules, gyro, OP.max_speed, OP.max_angular_velocity)
 
+        deadband = lambda value, band: value if abs(value) > band else 0
         self.swerve.setDefaultCommand(
             self.swerve.teleop_command(
                 lambda: deadband(-self.stick.getRawAxis(1), 0.05),
@@ -127,7 +127,3 @@ class RobotContainer:
         )
 
         return self.swerve.follow_trajectory_command(trajectory, follower_params, True)
-
-
-def deadband(value, band):
-    return value if abs(value) > band else 0
