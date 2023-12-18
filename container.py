@@ -27,7 +27,7 @@ class RobotContainer:
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.LF_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
-                    parameters=azimuth_params,
+                    parameters=components.azimuth_params,
                     absolute_encoder=abs_enc(ELEC.LF_encoder_DIO)),
                 placement=Translation2d(*components.module_locations['LF']),
             ),
@@ -39,7 +39,7 @@ class RobotContainer:
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.RF_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
-                    parameters=azimuth_params,
+                    parameters=components.azimuth_params,
                     absolute_encoder=abs_enc(ELEC.RF_encoder_DIO)),
                 placement=Translation2d(*components.module_locations['RF']),
             ),
@@ -51,7 +51,7 @@ class RobotContainer:
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.LB_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
-                    parameters=azimuth_params,
+                    parameters=components.azimuth_params,
                     absolute_encoder=abs_enc(ELEC.LB_encoder_DIO)),
                 placement=Translation2d(*components.module_locations['LB']),
             ),
@@ -63,7 +63,7 @@ class RobotContainer:
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.RB_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
-                    parameters=azimuth_params,
+                    parameters=components.azimuth_params,
                     absolute_encoder=abs_enc(ELEC.RB_encoder_DIO)),
                 placement=Translation2d(*components.module_locations['RB']),
             ),

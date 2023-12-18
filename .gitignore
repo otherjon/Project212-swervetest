@@ -171,3 +171,11 @@ bin/
 lib64
 pyvenv.cfg
 
+
+# RobotPy installation and simulation artifacts
+.installer_config
+networktables.json
+simgui-ds.json
+simgui-window.json
+simgui.json
+
