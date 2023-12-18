@@ -69,6 +69,11 @@ OP = {
 
     propulsion_neutral: rev.CANSparkMax.IdleMode.kCoast,
     steering_neutral: rev.CANSparkMax.IdleMode.kBrake,
+
+    # Values to pass to stick.getRawAxis()
+    translation_joystick_axis: 1,
+    strafe_joystick_axis: 0,
+    rotation_joystick_axis: 4,
 }
 
 # Software constants
