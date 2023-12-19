@@ -96,15 +96,15 @@ class RobotContainer:
 
     def get_translation_input(self):
         raw_stick_val = self.stick.getRawAxis(OP.translation_joystick_axis)
-        return deadband(-raw_stick_val, 0.05)
+        return self.deadband(-raw_stick_val, 0.05)
 
     def get_strafe_input(self):
         raw_stick_val = self.stick.getRawAxis(OP.strafe_joystick_axis)
-        return deadband(-raw_stick_val, 0.05)
+        return self.deadband(-raw_stick_val, 0.05)
 
     def get_rotation_input(self):
         raw_stick_val = self.stick.getRawAxis(OP.rotation_joystick_axis)
-        return deadband(-raw_stick_val, 0.1)
+        return self.deadband(-raw_stick_val, 0.1)
 
     def get_autonomous_command(self):
         follower_params = TrajectoryFollowerParameters(
