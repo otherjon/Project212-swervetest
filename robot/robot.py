@@ -33,6 +33,11 @@ class Robot(commands2.TimedCommandRobot):
         self.container = RobotContainer()
         self.scheduler = commands2.CommandScheduler.getInstance()
         self.autonomous_command: Optional[commands2.Command] = None
+        self.container.reset_encoders()
+
+    def robotPeriodic(self) -> None:
+        if hasattr(self.container, "log_data"):
+            self.container.log_data()
 
     def autonomousInit(self) -> None:
         """
@@ -52,7 +57,6 @@ class Robot(commands2.TimedCommandRobot):
         if self.autonomous_command:
             self.autonomous_command.cancel()
             self.autonomous_command = None
-
 
 # The magical line below tells Python that if we're running the robot for real,
 # it should use the wpilib module's run() function to make our robot go.  (On
