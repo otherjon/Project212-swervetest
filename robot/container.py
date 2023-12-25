@@ -1,4 +1,6 @@
 import math
+import logging
+logger = logging.getLogger("your.robot")
 
 import wpilib
 import wpimath.trajectory
@@ -17,7 +19,10 @@ class RobotContainer:
         # The Azimuth component included the absolute encoder because it needs
         # to be able to reset to absolute position.
         #
-        abs_enc = components.absolute_encoder_class
+        self.lf_enc = components.absolute_encoder_class(ELEC.LF_encoder_DIO)
+        self.lb_enc = components.absolute_encoder_class(ELEC.LB_encoder_DIO)
+        self.rb_enc = components.absolute_encoder_class(ELEC.RB_encoder_DIO)
+        self.rf_enc = components.absolute_encoder_class(ELEC.RF_encoder_DIO)
         modules = (
             # Left Front module
             CoaxialSwerveModule(
@@ -28,7 +33,7 @@ class RobotContainer:
                     id_=ELEC.LF_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
                     parameters=components.azimuth_params,
-                    absolute_encoder=abs_enc(ELEC.LF_encoder_DIO)),
+                    absolute_encoder=self.lf_enc),
                 placement=Translation2d(*components.module_locations['LF']),
             ),
             # Right Front module
@@ -40,7 +45,7 @@ class RobotContainer:
                     id_=ELEC.RF_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
                     parameters=components.azimuth_params,
-                    absolute_encoder=abs_enc(ELEC.RF_encoder_DIO)),
+                    absolute_encoder=self.rf_enc),
                 placement=Translation2d(*components.module_locations['RF']),
             ),
             # Left Back module
@@ -52,7 +57,7 @@ class RobotContainer:
                     id_=ELEC.LB_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
                     parameters=components.azimuth_params,
-                    absolute_encoder=abs_enc(ELEC.LB_encoder_DIO)),
+                    absolute_encoder=self.lb_enc),
                 placement=Translation2d(*components.module_locations['LB']),
             ),
             # Right Back module
@@ -64,7 +69,7 @@ class RobotContainer:
                     id_=ELEC.RB_steer_CAN_ID,
                     azimuth_offset=Rotation2d.fromDegrees(0),
                     parameters=components.azimuth_params,
-                    absolute_encoder=abs_enc(ELEC.RB_encoder_DIO)),
+                    absolute_encoder=self.rb_enc),
                 placement=Translation2d(*components.module_locations['RB']),
             ),
         )
@@ -90,21 +95,44 @@ class RobotContainer:
             )
         )
 
+    def log_data(self):
+        for pos in ("LF", "RF", "LB", "RB"):
+            encoder = getattr(self, f"{pos.lower()}_enc")
+            wpilib.SmartDashboard.putNumber(
+                f"{pos} absolute encoder", encoder.absolute_position_degrees)
+            wpilib.SmartDashboard.putNumber(
+                f"{pos} absolute encoder", encoder.absolute_position_degrees)
+
+    def reset_encoders(self):
+        for pos in ("LF", "RF", "LB", "RB"):
+            encoder = getattr(self, f"{pos.lower()}_enc")
+            encoder.reset_zero_position()
+        logger.info("Reset absolute encoders' zero positions")
+
     @staticmethod
     def deadband(value, band):
         return value if abs(value) > band else 0
 
-    def get_translation_input(self):
+    def process_joystick_input(self, val, deadband=0.1):
+        deadbanded_input = self.deadband(val, deadband)
+        input_sign = +1 if val > 0 else -1   # this works for val=0 also
+        scaled_input = abs(deadbanded_input)**1.5
+        return input_sign * scaled_input
+
+    def get_translation_input(self, invert=True):
         raw_stick_val = self.stick.getRawAxis(OP.translation_joystick_axis)
-        return self.deadband(-raw_stick_val, 0.05)
+        sign = -1.0 if invert else +1.0
+        return sign * self.process_joystick_input(raw_stick_val)
 
-    def get_strafe_input(self):
+    def get_strafe_input(self, invert=True):
         raw_stick_val = self.stick.getRawAxis(OP.strafe_joystick_axis)
-        return self.deadband(-raw_stick_val, 0.05)
+        sign = -1.0 if invert else +1.0
+        return sign * self.process_joystick_input(raw_stick_val)
 
-    def get_rotation_input(self):
+    def get_rotation_input(self, invert=True):
         raw_stick_val = self.stick.getRawAxis(OP.rotation_joystick_axis)
-        return self.deadband(-raw_stick_val, 0.1)
+        sign = -1.0 if invert else +1.0
+        return sign * self.process_joystick_input(raw_stick_val)
 
     def get_autonomous_command(self):
         follower_params = TrajectoryFollowerParameters(
