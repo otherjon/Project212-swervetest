@@ -178,4 +178,7 @@ networktables.json
 simgui-ds.json
 simgui-window.json
 simgui.json
+robot/.deploy_cfg
 
+
+robot/git-modified-files.txt
