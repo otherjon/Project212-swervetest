@@ -1,6 +1,6 @@
 """
-This file defines the components of our swerve drive.  This is mostly just
-defining which components (and thus which classes) we're using, calling the
+This file defines the components of your swerve drive.  This is mostly just
+defining which components (and thus which classes) you're using, calling the
 appropriate constructors, and passing in variables.  Since this many lines of
 code takes up space, it can obscure what's going on around it, so we'll do
 all that here instead of in the container.py module.
@@ -9,6 +9,7 @@ all that here instead of in the container.py module.
 
 from constants import PHYS, MECH, ELEC, OP, SW
 from swervepy.impl import (
+    # Replace these classes with the ones that apply to your robot
     DummyGyro,
     AbsoluteDutyCycleEncoder,
     CoaxialSwerveModule,
@@ -16,7 +17,7 @@ from swervepy.impl import (
     NEOCoaxialAzimuthComponent,
 )
 
-# Define which components we're using (which motors we're using)
+# Define which components you're using (e.g. which motors you're using)
 #
 drive_component_class = NEOCoaxialDriveComponent
 azimuth_component_class = NEOCoaxialAzimuthComponent
@@ -29,14 +30,17 @@ absolute_encoder_class = AbsoluteDutyCycleEncoder
 # data class has different options, based on the motors it uses etc.)
 #
 drive_param_values = {
-    # For NEOCoaxialDriveComponent:
+    # NEOCoaxialDriveComponent takes all the following params.
+    # Falcon500CoaxialDriveComponent takes all these params, plus one more
+    # (peak_current_duration).
+    #
     "wheel_circumference": PHYS.wheel_circumference,
     "gear_ratio": MECH.swerve_module_propulsion_gearing_ratio,
     "max_speed": OP.max_speed,
     "open_loop_ramp_rate": ELEC.open_loop_ramp_rate,
     "closed_loop_ramp_rate": ELEC.closed_loop_ramp_rate,
-    "continuous_current_limit": ELEC.continuous_current_limit,
-    "peak_current_limit": ELEC.peak_current_limit,
+    "continuous_current_limit": ELEC.drive_continuous_current_limit,
+    "peak_current_limit": ELEC.drive_peak_current_limit,
     "neutral_mode": OP.propulsion_neutral,
     "kP": SW.kP,
     "kI": SW.kI,
@@ -47,12 +51,15 @@ drive_param_values = {
     "invert_motor": MECH.propulsion_motor_inverted,
 }
 azimuth_param_values = {
-    # For NEOCoaxialAzimuthComponent:
+    # NEOCoaxialDriveComponent takes all the following params.
+    # Falcon500CoaxialDriveComponent takes all these params, plus one more
+    # (peak_current_duration).
+    #
     "gear_ratio": MECH.swerve_module_propulsion_gearing_ratio,
     "max_angular_velocity": OP.max_angular_velocity,
     "ramp_rate": 0,
-    "continuous_current_limit": ELEC.continuous_current_limit,
-    "peak_current_limit": ELEC.peak_current_limit,
+    "continuous_current_limit": ELEC.azimuth_continuous_current_limit,
+    "peak_current_limit": ELEC.azimuth_peak_current_limit,
     "neutral_mode": OP.steering_neutral,
     "kP": SW.kP,
     "kI": SW.kI,
@@ -61,7 +68,16 @@ azimuth_param_values = {
 }
 
 gyro_param_values = {
-    # For DummyGyro:
+    # For DummyGyro: no parameters
+    #   * gyro will always report a fixed value of 0 degrees
+    #   * do not use in field_relative=True mode!
+    #
+    # For PigeonGyro:
+    #   * param id_ (int): CAN bus ID of Pigeon IMU
+    #   * param invert (bool): True iff Pigeon is mounted with yaw axis inverted
+    #     (default False)
+    #
+    # Add your gyro constructor params here.
 }
 
 drive_component_params_class = drive_component_class.Parameters

@@ -3,8 +3,8 @@ import logging
 logger = logging.getLogger("your.robot")
 
 import wpilib
-import wpimath.trajectory
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
+from pathplannerlib.path import PathPlannerPath, PathConstraints, GoalEndState
 
 from swervepy import u, SwerveDrive, TrajectoryFollowerParameters
 from swervepy.impl import CoaxialSwerveModule
@@ -113,46 +113,51 @@ class RobotContainer:
     def deadband(value, band):
         return value if abs(value) > band else 0
 
-    def process_joystick_input(self, val, deadband=0.1):
+    def process_joystick_input(self, val, deadband=0.1, exponent=1,
+                               invert=False):
+        """
+        Given a raw joystick reading, return the processed value after adjusting
+        for real-world UX considerations:
+          * apply a deadband to ignore jitter around zero
+          * apply an exponent for greater low-velocity control
+        """
         deadbanded_input = self.deadband(val, deadband)
         input_sign = +1 if val > 0 else -1   # this works for val=0 also
-        scaled_input = abs(deadbanded_input)**1.5
-        return input_sign * scaled_input
+        invert_sign = -1 if invert else +1
+        # abs required for fractional exponents
+        scaled_input = abs(deadbanded_input)**exponent
+        return invert_sign * input_sign * scaled_input
 
     def get_translation_input(self, invert=True):
         raw_stick_val = self.stick.getRawAxis(OP.translation_joystick_axis)
-        sign = -1.0 if invert else +1.0
-        return sign * self.process_joystick_input(raw_stick_val)
+        return self.process_joystick_input(raw_stick_val, invert=invert)
 
     def get_strafe_input(self, invert=True):
         raw_stick_val = self.stick.getRawAxis(OP.strafe_joystick_axis)
-        sign = -1.0 if invert else +1.0
-        return sign * self.process_joystick_input(raw_stick_val)
+        return self.process_joystick_input(raw_stick_val, invert=invert)
 
     def get_rotation_input(self, invert=True):
         raw_stick_val = self.stick.getRawAxis(OP.rotation_joystick_axis)
-        sign = -1.0 if invert else +1.0
-        return sign * self.process_joystick_input(raw_stick_val)
+        return self.process_joystick_input(raw_stick_val, invert=invert)
 
     def get_autonomous_command(self):
         follower_params = TrajectoryFollowerParameters(
-            target_angular_velocity=math.pi * (u.rad / u.s),
-            target_angular_acceleration=math.pi * (u.rad / (u.s * u.s)),
+            max_drive_velocity=4.5 * (u.m / u.s),
             theta_kP=1,
-            x_kP=1,
-            y_kP=1,
+            xy_kP=1,
         )
 
-        trajectory_config = wpimath.trajectory.TrajectoryConfig(maxVelocity=4.5, maxAcceleration=1)
-
-        trajectory = wpimath.trajectory.TrajectoryGenerator.generateTrajectory(
-            [
-                Pose2d(0, 0, 0),  # Start at (0, 0)
-                Pose2d(1, 0, 0),  # Move 1m forward
-            ],
-            trajectory_config,
+        bezier_points = PathPlannerPath.bezierFromPoses([
+            Pose2d(1.0, 1.0, Rotation2d.fromDegrees(0)),
+            Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0)),
+            Pose2d(5.0, 3.0, Rotation2d.fromDegrees(90)),
+        ])
+        path = PathPlannerPath(
+            bezier_points,
+            PathConstraints(3.0, 3.0, 2 * math.pi, 4 * math.pi),
+            GoalEndState(0.0, Rotation2d.fromDegrees(-90)),     # Zero velocity and facing 90 degrees clockwise
         )
 
         first_path = True  # reset robot pose to initial pose in trajectory
-        return self.swerve.follow_trajectory_command(
-            trajectory, follower_params, first_path)
+        open_loop = True   # don't use built-in motor feedback for velocity
+        return self.swerve.follow_trajectory_command(path, follower_params, first_path, open_loop)
