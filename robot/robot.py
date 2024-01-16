@@ -1,17 +1,7 @@
 import sys
-from pathlib import Path
 from typing import Optional
-
 import commands2
 import wpilib
-
-# The line below is some magic that we'll use to tell Python where to find
-# our container.py file.  (Of course, we need to perform this magic before we
-# attempt to import our container.py file!)
-#
-sys.path.append(str(Path(__file__).parent.parent.absolute()))
-
-# Now we can import the container module!
 from container import RobotContainer
 
 
