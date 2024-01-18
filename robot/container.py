@@ -14,15 +14,22 @@ import components
 
 class RobotContainer:
     def __init__(self):
-        gyro = components.gyro_component_class(**components.gyro_param_values)
+        swerve_gyro = components.gyro_component_class(
+            **components.gyro_param_values)  # NavXGyro wrapper class
+        self.gyro = swerve_gyro.navx  # underlying navx.AHRS object
+        self.gyro.zeroYaw()
 
         # The Azimuth component included the absolute encoder because it needs
         # to be able to reset to absolute position.
         #
-        self.lf_enc = components.absolute_encoder_class(ELEC.LF_encoder_DIO)
-        self.lb_enc = components.absolute_encoder_class(ELEC.LB_encoder_DIO)
-        self.rb_enc = components.absolute_encoder_class(ELEC.RB_encoder_DIO)
-        self.rf_enc = components.absolute_encoder_class(ELEC.RF_encoder_DIO)
+        self.lf_enc = components.absolute_encoder_class(
+            ELEC.LF_encoder_DIO, 0*SW.lf_abs_enc)
+        self.lb_enc = components.absolute_encoder_class(
+            ELEC.LB_encoder_DIO, 0*SW.lb_abs_enc)
+        self.rb_enc = components.absolute_encoder_class(
+            ELEC.RB_encoder_DIO, 0*SW.rb_abs_enc)
+        self.rf_enc = components.absolute_encoder_class(
+            ELEC.RF_encoder_DIO, 0*SW.rf_abs_enc)
         modules = (
             # Left Front module
             CoaxialSwerveModule(
@@ -31,7 +38,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.LF_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(0),
+                    azimuth_offset=Rotation2d.fromDegrees(SW.lf_abs_enc),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.lf_enc),
                 placement=Translation2d(*components.module_locations['LF']),
@@ -43,7 +50,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.RF_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(0),
+                    azimuth_offset=Rotation2d.fromDegrees(SW.rf_abs_enc),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.rf_enc),
                 placement=Translation2d(*components.module_locations['RF']),
@@ -55,7 +62,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.LB_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(0),
+                    azimuth_offset=Rotation2d.fromDegrees(SW.lb_abs_enc),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.lb_enc),
                 placement=Translation2d(*components.module_locations['LB']),
@@ -67,7 +74,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.RB_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(0),
+                    azimuth_offset=Rotation2d.fromDegrees(SW.rb_abs_enc),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.rb_enc),
                 placement=Translation2d(*components.module_locations['RB']),
@@ -95,7 +102,7 @@ class RobotContainer:
         # and some options
         #
         self.swerve = SwerveDrive(
-            modules, gyro, OP.max_speed, OP.max_angular_velocity)
+            modules, swerve_gyro, OP.max_speed, OP.max_angular_velocity)
 
         # Set the swerve subsystem's default command to teleoperate using
         # the controller joysticks
@@ -114,9 +121,20 @@ class RobotContainer:
         for pos in ("LF", "RF", "LB", "RB"):
             encoder = getattr(self, f"{pos.lower()}_enc")
             wpilib.SmartDashboard.putNumber(
-                f"{pos} absolute encoder", encoder.absolute_position_degrees)
+                f"A/{pos} absolute encoder", encoder.absolute_position_degrees)
             wpilib.SmartDashboard.putNumber(
-                f"{pos} absolute encoder", encoder.absolute_position_degrees)
+                f"A/{pos} absolute encoder", encoder.absolute_position_degrees)
+        wpilib.SmartDashboard.putNumber(
+            "A/NavX gyro fused heading", self.gyro.getFusedHeading())
+        wpilib.SmartDashboard.putNumber(
+            "A/NavX gyro yaw", self.gyro.getYaw())
+        for i, loc in enumerate(('LF', 'RF', 'LB', 'RB')):
+            module = self.swerve._modules[i]
+            wpilib.SmartDashboard.putNumber(f"A/AZ/{loc} offset", module)
+        #    wpilib.SmartDashboard.putNumber(
+        #        f"A/AZ/{loc} offset", module._azimuth.azimuth_offset.degrees())
+        #    wpilib.SmartDashboard.putNumber(
+        #        f"A/AZ/{loc} abs pos", module._azimuth.absolute_encoder.absolute_position)
 
     def reset_encoders(self):
         for pos in ("LF", "RF", "LB", "RB"):

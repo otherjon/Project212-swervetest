@@ -1,6 +1,7 @@
 """The swerve drive subsystem and other classes it relies on"""
 
 import math
+import logging; logger = logging.getLogger("subsystem"); lastlogtime = None
 import time
 from dataclasses import dataclass
 from functools import singledispatchmethod
@@ -124,7 +125,13 @@ class SwerveDrive(commands2.Subsystem):
             else ChassisSpeeds(translation.x, translation.y, rotation)
         )
         swerve_module_states = self._kinematics.toSwerveModuleStates(speeds)
-
+        if False:
+            global lastlogtime
+            now = time.time()
+            if lastlogtime is None or int(lastlogtime*2) != int(now*2):
+                lastlogtime = now
+                logger.warning(f"DEBUG: speeds = {speeds}")
+                logger.warning(f"DEBUG: module states = {swerve_module_states}")
         self.desire_module_states(swerve_module_states, drive_open_loop, rotate_in_place=False)
 
     @drive.register

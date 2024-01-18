@@ -86,12 +86,12 @@ op_data = {
     # following parameters.  Setting to None is the same as setting to
     # max_speed/max_angular_velocity, and indicates no limit.
     #
-    "speed_limit": 0.2 * (u.m / u.s),
-    "angular_velocity_limit": 1.0 * (u.rad / u.s),
+    "speed_limit": 0.5 * (u.m / u.s),
+    "angular_velocity_limit": 2.0 * (u.rad / u.s),
 
     # For NEO / SparkMAX, use the following and comment out the Falcon500 values
     "propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
-    "steering_neutral": rev.CANSparkMax.IdleMode.kBrake,
+    "steering_neutral": rev.CANSparkMax.IdleMode.kCoast,
     # For Falcon500 / TalonFX, use the following and comment out the NEO values
     #"propulsion_neutral": phoenix5.NeutralMode.Coast,
     #"steering_neutral": phoenix5.NeutralMode.Brake,
@@ -106,6 +106,11 @@ OP = namedtuple("Data", op_data.keys())(**op_data)
 
 # Software constants
 sw_data = {
+    "lf_abs_enc": 94.0,
+    "rf_abs_enc": 179.0,
+    "rb_abs_enc": 227.0,
+    "lb_abs_enc": 135.0,
+
     # field_relative: True if "forward" means "down the field"; False if
     # "forward" means "in the direction the robot is facing".  A True value
     # requires a (non-Dummy) gyro.
