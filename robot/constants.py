@@ -31,7 +31,7 @@ mech_data = {
     "swerve_module_steering_gearing_ratio": 150 / 7,  # SDS Mk4i
 
     "propulsion_motor_inverted": False,
-    "steering_motor_inverted": False,
+    "steering_motor_inverted": True,
 }
 MECH = namedtuple("Data", mech_data.keys())(**mech_data)
 
@@ -70,7 +70,7 @@ ELEC = namedtuple("Data", elec_data.keys())(**elec_data)
 
 JOYSTICK_AXES = {
   "LEFT_X": 0,
-  "LEFT_Y": 1,  # broken on Jon's controller!
+  "LEFT_Y": 1,
   "RIGHT_X": 4,
   "RIGHT_Y": 5,
 }
@@ -86,8 +86,8 @@ op_data = {
     # following parameters.  Setting to None is the same as setting to
     # max_speed/max_angular_velocity, and indicates no limit.
     #
-    "speed_limit": 0.5 * (u.m / u.s),
-    "angular_velocity_limit": 2.0 * (u.rad / u.s),
+    "speed_limit": 0.2 * (u.m / u.s),
+    "angular_velocity_limit": 1.0 * (u.rad / u.s),
 
     # For NEO / SparkMAX, use the following and comment out the Falcon500 values
     "propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
@@ -98,23 +98,23 @@ op_data = {
 
     # Values to pass to stick.getRawAxis()
     # Set these according to your operator preferences
-    "translation_joystick_axis": JOYSTICK_AXES["RIGHT_Y"],
-    "strafe_joystick_axis": JOYSTICK_AXES["RIGHT_X"],
-    "rotation_joystick_axis": JOYSTICK_AXES["LEFT_X"],
+    "translation_joystick_axis": JOYSTICK_AXES["LEFT_Y"],
+    "strafe_joystick_axis": JOYSTICK_AXES["LEFT_X"],
+    "rotation_joystick_axis": JOYSTICK_AXES["RIGHT_X"],
 }
 OP = namedtuple("Data", op_data.keys())(**op_data)
 
 # Software constants
 sw_data = {
-    "lf_abs_enc": 94.0,
-    "rf_abs_enc": 179.0,
-    "rb_abs_enc": 227.0,
-    "lb_abs_enc": 135.0,
+    "lf_abs_enc": 95,
+    "rf_abs_enc":  3,
+    "rb_abs_enc":  6,
+    "lb_abs_enc": 86,
 
     # field_relative: True if "forward" means "down the field"; False if
     # "forward" means "in the direction the robot is facing".  A True value
     # requires a (non-Dummy) gyro.
-    "field_relative": False,
+    "field_relative": True,
 
     # open_loop: True if we're not using PID control *for velocity targeting*,
     # i.e. when a target velocity is calculated, do we use the corresponding

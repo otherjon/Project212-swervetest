@@ -5,6 +5,7 @@ logger = logging.getLogger("your.robot")
 import wpilib
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from pathplannerlib.path import PathPlannerPath, PathConstraints, GoalEndState
+import commands2
 
 from swervepy import u, SwerveDrive, TrajectoryFollowerParameters
 from swervepy.impl import CoaxialSwerveModule
@@ -81,7 +82,12 @@ class RobotContainer:
             ),
         )
 
-        self.stick = wpilib.Joystick(0)
+        self.stick = commands2.button.CommandJoystick(0)
+        def wheelsStraight():
+            logger.info("Straightening wheels")
+            for m in modules:
+                m._azimuth.follow_angle(Rotation2d.fromDegrees(0))
+        self.stick.button(1).onTrue(commands2.cmd.runOnce(wheelsStraight))
 
         self.speed_limit_ratio = 1.0
         if OP.speed_limit:
@@ -130,11 +136,11 @@ class RobotContainer:
             "A/NavX gyro yaw", self.gyro.getYaw())
         for i, loc in enumerate(('LF', 'RF', 'LB', 'RB')):
             module = self.swerve._modules[i]
-            wpilib.SmartDashboard.putNumber(f"A/AZ/{loc} offset", module)
-        #    wpilib.SmartDashboard.putNumber(
-        #        f"A/AZ/{loc} offset", module._azimuth.azimuth_offset.degrees())
-        #    wpilib.SmartDashboard.putNumber(
-        #        f"A/AZ/{loc} abs pos", module._azimuth.absolute_encoder.absolute_position)
+            wpilib.SmartDashboard.putNumber(f"A/AZ/{loc} offset", module._azimuth._offset.degrees())
+            wpilib.SmartDashboard.putNumber(
+                f"A/AZ/{loc} abs pos", module._azimuth._absolute_encoder.absolute_position_degrees)
+            wpilib.SmartDashboard.putNumber(
+                f"A/AZ/{loc} enc pos", module._azimuth._encoder.getPosition())
 
     def reset_encoders(self):
         for pos in ("LF", "RF", "LB", "RB"):
@@ -146,7 +152,7 @@ class RobotContainer:
     def deadband(value, band):
         return value if abs(value) > band else 0
 
-    def process_joystick_input(self, val, deadband=0.1, exponent=1,
+    def process_joystick_input(self, val, deadband=0.03, exponent=1,
                                limit_ratio=1.0, invert=False):
         """
         Given a raw joystick reading, return the processed value after adjusting
