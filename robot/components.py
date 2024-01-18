@@ -10,18 +10,19 @@ all that here instead of in the container.py module.
 from constants import PHYS, MECH, ELEC, OP, SW
 from swervepy.impl import (
     # Replace these classes with the ones that apply to your robot
-    DummyGyro,
     AbsoluteDutyCycleEncoder,
     CoaxialSwerveModule,
     NEOCoaxialDriveComponent,
     NEOCoaxialAzimuthComponent,
 )
+from swervepy.impl.sensor import NavXGyro
+
 
 # Define which components you're using (e.g. which motors you're using)
 #
 drive_component_class = NEOCoaxialDriveComponent
 azimuth_component_class = NEOCoaxialAzimuthComponent
-gyro_component_class = DummyGyro
+gyro_component_class = NavXGyro
 absolute_encoder_class = AbsoluteDutyCycleEncoder
 
 # For the drive/azimuth classes selected, set the parameters which DO NOT vary
@@ -77,7 +78,11 @@ gyro_param_values = {
     #   * param invert (bool): True iff Pigeon is mounted with yaw axis inverted
     #     (default False)
     #
+    # For NavXGyro: no parameters required; see class definition for optional
+    #
     # Add your gyro constructor params here.
+    #
+    "invert": False,
 }
 
 drive_component_params_class = drive_component_class.Parameters

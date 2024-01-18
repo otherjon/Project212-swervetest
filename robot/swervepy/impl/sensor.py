@@ -1,6 +1,7 @@
 import enum
 
 import phoenix5.sensors
+import navx
 import rev
 import wpilib
 from wpimath.geometry import Rotation2d
@@ -28,17 +29,18 @@ class AbsoluteCANCoder(AbsoluteEncoder):
 
 
 class AbsoluteDutyCycleEncoder(AbsoluteEncoder):
-    def __init__(self, dio_pin: int):
+    def __init__(self, dio_pin: int, offset: float = 0.0):
         super().__init__()
 
         self._encoder = wpilib.DutyCycleEncoder(dio_pin)
+        self.offset = offset
         wpilib.SmartDashboard.putData(f"Absolute PWM Encoder {dio_pin}", self)
 
     @property
     def absolute_position_degrees(self) -> float:
         pos = self._encoder.getAbsolutePosition()  # 0.0 <= pos < 1.0 (rotations)
-        degrees = 360 * pos
-        return degrees
+        degrees = 360 * pos - self.offset
+        return degrees % 360
 
     @property
     def absolute_position(self) -> Rotation2d:
@@ -88,6 +90,29 @@ class Pigeon2Gyro(Gyro):
     @property
     def heading(self) -> Rotation2d:
         yaw = self._gyro.getYaw()
+        if self.invert:
+            yaw = 360 - yaw
+        return Rotation2d.fromDegrees(yaw)
+
+
+class NavXGyro(Gyro):
+    def __init__(self, gyro: navx.AHRS = None, invert: bool = False):
+        super().__init__()
+        self.invert = invert
+
+        if gyro:
+            self.navx = gyro
+        else:
+            self.navx = navx.AHRS.create_spi()
+
+        wpilib.SmartDashboard.putData("NavX", self.navx)
+
+    def zero_heading(self):
+        self.navx.zeroYaw()
+
+    @property
+    def heading(self) -> Rotation2d:
+        yaw = self.navx.getFusedHeading()
         if self.invert:
             yaw = 360 - yaw
         return Rotation2d.fromDegrees(yaw)
