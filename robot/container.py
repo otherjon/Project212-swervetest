@@ -87,7 +87,10 @@ class RobotContainer:
             logger.info("Straightening wheels")
             for m in modules:
                 m._azimuth.follow_angle(Rotation2d.fromDegrees(0))
-        self.stick.button(1).onTrue(commands2.cmd.runOnce(wheelsStraight))
+        self.stick.button(1).onTrue(  # A button
+            commands2.cmd.runOnce(wheelsStraight))
+        self.stick.button(8).onTrue(  # START button
+            commands2.cmd.runOnce(self.setEncodersToStraight))
 
         self.speed_limit_ratio = 1.0
         if OP.speed_limit:
@@ -122,6 +125,13 @@ class RobotContainer:
                 drive_open_loop=SW.open_loop,
             )
         )
+
+    def setEncodersToStraight(self):
+        logger.info("Resetting encoders assuming wheels have been manually straightened")
+        for module in self.swerve._modules:
+            az = module._azimuth
+            az._offset = az._absolute_encoder.absolute_position
+            az.reset()
 
     def log_data(self):
         for pos in ("LF", "RF", "LB", "RB"):
