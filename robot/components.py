@@ -43,12 +43,12 @@ drive_param_values = {
     "continuous_current_limit": ELEC.drive_continuous_current_limit,
     "peak_current_limit": ELEC.drive_peak_current_limit,
     "neutral_mode": OP.propulsion_neutral,
-    "kP": SW.kP,
-    "kI": SW.kI,
-    "kD": SW.kD,
-    "kS": SW.kS,
-    "kV": SW.kV,
-    "kA": SW.kA,
+    "kP": SW.propulsion_kP,
+    "kI": SW.propulsion_kI,
+    "kD": SW.propulsion_kD,
+    "kS": SW.propulsion_kS,
+    "kV": SW.propulsion_kV,
+    "kA": SW.propulsion_kA,
     "invert_motor": MECH.propulsion_motor_inverted,
 }
 azimuth_param_values = {
@@ -62,9 +62,9 @@ azimuth_param_values = {
     "continuous_current_limit": ELEC.azimuth_continuous_current_limit,
     "peak_current_limit": ELEC.azimuth_peak_current_limit,
     "neutral_mode": OP.steering_neutral,
-    "kP": SW.kP,
-    "kI": SW.kI,
-    "kD": SW.kD,
+    "kP": SW.steering_kP,
+    "kI": SW.steering_kI,
+    "kD": SW.steering_kD,
     "invert_motor": MECH.steering_motor_inverted,
 }
 

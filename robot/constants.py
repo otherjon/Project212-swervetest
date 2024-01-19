@@ -114,7 +114,7 @@ sw_data = {
     # field_relative: True if "forward" means "down the field"; False if
     # "forward" means "in the direction the robot is facing".  A True value
     # requires a (non-Dummy) gyro.
-    "field_relative": True,
+    "field_relative": False,
 
     # open_loop: True if we're not using PID control *for velocity targeting*,
     # i.e. when a target velocity is calculated, do we use the corresponding
@@ -128,13 +128,16 @@ sw_data = {
     # Constants for PID control of the propulsion AND steering motors
     # (kP must be non-zero, or azimuth motors won't engage.)
     #"kP": 0.3,   # representative value for Falcon500 motors
-    "kP": 0.01,   # representative value for NEO motors
-    "kI": 0,
-    "kD": 0,
+    "propulsion_kP": 0.01,   # representative value for NEO motors
+    "propulsion_kI": 0,
+    "propulsion_kD": 0,
+    "steering_kP": 0.01,   # representative value for NEO motors
+    "steering_kI": 0,
+    "steering_kD": 0,
 
     # Constants for feed-forward of propulsion motors
-    "kS": 0,
-    "kV": 0,
-    "kA": 0,
+    "propulsion_kS": 0,
+    "propulsion_kV": 0,
+    "propulsion_kA": 0,
 }
 SW = namedtuple("Data", sw_data.keys())(**sw_data)
