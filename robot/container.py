@@ -23,14 +23,19 @@ class RobotContainer:
         # The Azimuth component included the absolute encoder because it needs
         # to be able to reset to absolute position.
         #
-        self.lf_enc = components.absolute_encoder_class(
-            ELEC.LF_encoder_DIO, 0*SW.lf_abs_enc)
-        self.lb_enc = components.absolute_encoder_class(
-            ELEC.LB_encoder_DIO, 0*SW.lb_abs_enc)
-        self.rb_enc = components.absolute_encoder_class(
-            ELEC.RB_encoder_DIO, 0*SW.rb_abs_enc)
-        self.rf_enc = components.absolute_encoder_class(
-            ELEC.RF_encoder_DIO, 0*SW.rf_abs_enc)
+        self.lf_enc = components.absolute_encoder_class(ELEC.LF_encoder_DIO)
+        self.lb_enc = components.absolute_encoder_class(ELEC.LB_encoder_DIO)
+        self.rb_enc = components.absolute_encoder_class(ELEC.RB_encoder_DIO)
+        self.rf_enc = components.absolute_encoder_class(ELEC.RF_encoder_DIO)
+
+        # Determine what the current reading of the 4 encoders should be, given
+        # that SW.XX_enc_zeropos says where the wheels face front
+        #
+        lf_enc_pos = self.lf_enc.absolute_position_degrees - SW.lf_enc_zeropos
+        rf_enc_pos = self.rf_enc.absolute_position_degrees - SW.rf_enc_zeropos
+        lb_enc_pos = self.lb_enc.absolute_position_degrees - SW.lb_enc_zeropos
+        rb_enc_pos = self.rb_enc.absolute_position_degrees - SW.rb_enc_zeropos
+
         modules = (
             # Left Front module
             CoaxialSwerveModule(
@@ -39,7 +44,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.LF_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(SW.lf_abs_enc),
+                    azimuth_offset=Rotation2d.fromDegrees(lf_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.lf_enc),
                 placement=Translation2d(*components.module_locations['LF']),
@@ -51,7 +56,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.RF_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(SW.rf_abs_enc),
+                    azimuth_offset=Rotation2d.fromDegrees(rf_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.rf_enc),
                 placement=Translation2d(*components.module_locations['RF']),
@@ -63,7 +68,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.LB_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(SW.lb_abs_enc),
+                    azimuth_offset=Rotation2d.fromDegrees(lb_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.lb_enc),
                 placement=Translation2d(*components.module_locations['LB']),
@@ -75,7 +80,7 @@ class RobotContainer:
                     parameters=components.drive_params),
                 azimuth=components.azimuth_component_class(
                     id_=ELEC.RB_steer_CAN_ID,
-                    azimuth_offset=Rotation2d.fromDegrees(SW.rb_abs_enc),
+                    azimuth_offset=Rotation2d.fromDegrees(rb_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.rb_enc),
                 placement=Translation2d(*components.module_locations['RB']),
@@ -131,6 +136,7 @@ class RobotContainer:
         for module in self.swerve._modules:
             az = module._azimuth
             az._offset = az._absolute_encoder.absolute_position
+            logger.info(f" * offset = {az._offset.degrees()}")
             az.reset()
 
     def log_data(self):

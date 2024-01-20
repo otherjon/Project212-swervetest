@@ -106,15 +106,19 @@ OP = namedtuple("Data", op_data.keys())(**op_data)
 
 # Software constants
 sw_data = {
-    "lf_abs_enc": 95,
-    "rf_abs_enc":  3,
-    "rb_abs_enc":  6,
-    "lb_abs_enc": 86,
+    # "Zero" (front-facing) positions, as read from the four encoders
+    # NOTE: when facing wheels "front", make sure that the bevel gears are all
+    # facing right.  Otherwise the wheel will run in reverse!
+    #
+    "lf_enc_zeropos":  85,
+    "rf_enc_zeropos":  12,
+    "rb_enc_zeropos": 303,
+    "lb_enc_zeropos": 222,
 
     # field_relative: True if "forward" means "down the field"; False if
     # "forward" means "in the direction the robot is facing".  A True value
     # requires a (non-Dummy) gyro.
-    "field_relative": False,
+    "field_relative": True,
 
     # open_loop: True if we're not using PID control *for velocity targeting*,
     # i.e. when a target velocity is calculated, do we use the corresponding

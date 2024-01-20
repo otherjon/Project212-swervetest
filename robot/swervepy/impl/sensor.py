@@ -29,17 +29,16 @@ class AbsoluteCANCoder(AbsoluteEncoder):
 
 
 class AbsoluteDutyCycleEncoder(AbsoluteEncoder):
-    def __init__(self, dio_pin: int, offset: float = 0.0):
+    def __init__(self, dio_pin: int):
         super().__init__()
 
         self._encoder = wpilib.DutyCycleEncoder(dio_pin)
-        self.offset = offset
         wpilib.SmartDashboard.putData(f"Absolute PWM Encoder {dio_pin}", self)
 
     @property
     def absolute_position_degrees(self) -> float:
         pos = self._encoder.getAbsolutePosition()  # 0.0 <= pos < 1.0 (rotations)
-        degrees = 360 * pos - self.offset
+        degrees = 360 * pos
         return degrees % 360
 
     @property
