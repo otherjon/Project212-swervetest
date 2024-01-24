@@ -23,7 +23,7 @@ class Robot(commands2.TimedCommandRobot):
         self.container = RobotContainer()
         self.scheduler = commands2.CommandScheduler.getInstance()
         self.autonomous_command: Optional[commands2.Command] = None
-        self.container.reset_encoders()
+        self.container.swerve.reset_modules()
 
     def robotPeriodic(self) -> None:
         if hasattr(self.container, "log_data"):

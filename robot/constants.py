@@ -86,8 +86,8 @@ op_data = {
     # following parameters.  Setting to None is the same as setting to
     # max_speed/max_angular_velocity, and indicates no limit.
     #
-    "speed_limit": 0.2 * (u.m / u.s),
-    "angular_velocity_limit": 1.0 * (u.rad / u.s),
+    "speed_limit": 0.4 * (u.m / u.s),
+    "angular_velocity_limit": 1.5 * (u.rad / u.s),
 
     # For NEO / SparkMAX, use the following and comment out the Falcon500 values
     "propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
@@ -110,10 +110,10 @@ sw_data = {
     # NOTE: when facing wheels "front", make sure that the bevel gears are all
     # facing right.  Otherwise the wheel will run in reverse!
     #
-    "lf_enc_zeropos":  85,
-    "rf_enc_zeropos":  12,
-    "rb_enc_zeropos": 303,
-    "lb_enc_zeropos": 222,
+    "lf_enc_zeropos":  -89, #   95,  85,
+    "rf_enc_zeropos":  185, #    5,  12,
+    "lb_enc_zeropos":  135, # -125, 222,
+    "rb_enc_zeropos":   45, #  135, 303,
 
     # field_relative: True if "forward" means "down the field"; False if
     # "forward" means "in the direction the robot is facing".  A True value

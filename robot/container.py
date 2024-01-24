@@ -13,6 +13,8 @@ from swervepy.impl import CoaxialSwerveModule
 from constants import PHYS, MECH, ELEC, OP, SW
 import components
 
+from commands.wheels_straight import WheelsStraight
+
 class RobotContainer:
     def __init__(self):
         swerve_gyro = components.gyro_component_class(
@@ -23,10 +25,14 @@ class RobotContainer:
         # The Azimuth component included the absolute encoder because it needs
         # to be able to reset to absolute position.
         #
-        self.lf_enc = components.absolute_encoder_class(ELEC.LF_encoder_DIO)
-        self.lb_enc = components.absolute_encoder_class(ELEC.LB_encoder_DIO)
-        self.rb_enc = components.absolute_encoder_class(ELEC.RB_encoder_DIO)
-        self.rf_enc = components.absolute_encoder_class(ELEC.RF_encoder_DIO)
+        self.lf_enc = components.absolute_encoder_class(
+            ELEC.LF_encoder_DIO, SW.lf_enc_zeropos)
+        self.lb_enc = components.absolute_encoder_class(
+            ELEC.LB_encoder_DIO, SW.lb_enc_zeropos)
+        self.rf_enc = components.absolute_encoder_class(
+            ELEC.RF_encoder_DIO, SW.rf_enc_zeropos)
+        self.rb_enc = components.absolute_encoder_class(
+            ELEC.RB_encoder_DIO, SW.rb_enc_zeropos)
 
         # Determine what the current reading of the 4 encoders should be, given
         # that SW.XX_enc_zeropos says where the wheels face front
@@ -35,6 +41,7 @@ class RobotContainer:
         rf_enc_pos = self.rf_enc.absolute_position_degrees - SW.rf_enc_zeropos
         lb_enc_pos = self.lb_enc.absolute_position_degrees - SW.lb_enc_zeropos
         rb_enc_pos = self.rb_enc.absolute_position_degrees - SW.rb_enc_zeropos
+        logger.info(f"Encoder startup positions: {lf_enc_pos}, {lb_enc_pos}, {rf_enc_pos}, {rb_enc_pos}")
 
         modules = (
             # Left Front module
@@ -87,15 +94,15 @@ class RobotContainer:
             ),
         )
 
-        self.stick = commands2.button.CommandJoystick(0)
+        self.stick = commands2.button.CommandXboxController(0)
         def wheelsStraight():
             logger.info("Straightening wheels")
             for m in modules:
                 m._azimuth.follow_angle(Rotation2d.fromDegrees(0))
-        self.stick.button(1).onTrue(  # A button
-            commands2.cmd.runOnce(wheelsStraight))
-        self.stick.button(8).onTrue(  # START button
-            commands2.cmd.runOnce(self.setEncodersToStraight))
+        wheels_straight_cmd = commands2.cmd.run(wheelsStraight)
+        self.stick.a().onTrue(wheels_straight_cmd)
+        self.stick.a().onFalse(
+            commands2.cmd.runOnce(wheels_straight_cmd.cancel))
 
         self.speed_limit_ratio = 1.0
         if OP.speed_limit:
@@ -117,6 +124,18 @@ class RobotContainer:
         #
         self.swerve = SwerveDrive(
             modules, swerve_gyro, OP.max_speed, OP.max_angular_velocity)
+        self.stick.y().onTrue(  # Y button
+            commands2.cmd.runOnce(self.swerve.reset_modules))
+        #self.stick.a().onTrue(WheelsStraight(self.swerve))  # A button
+
+        self.stick.start().onTrue(
+            commands2.cmd.runOnce(self.setEncodersToStraight))
+        def showOffsets():
+            offsets = {}
+            for i, name in enumerate("LF RF LB RB".split()):
+                m = self.swerve._modules[i]._azimuth
+                logger.info(f"{name}: abs={m._absolute_encoder.absolute_position.degrees():6.1f} - offset={m._offset.degrees():6.1f} => enc={m._encoder.getPosition():6.1f}")
+        self.stick.rightBumper().onTrue(commands2.cmd.runOnce(showOffsets))
 
         # Set the swerve subsystem's default command to teleoperate using
         # the controller joysticks
@@ -139,30 +158,34 @@ class RobotContainer:
             logger.info(f" * offset = {az._offset.degrees()}")
             az.reset()
 
+    def set_ntval(self, topicname, value, cls='Double'):
+        method_map = {
+            'Double': wpilib.SmartDashboard.putNumber,
+            'Int': wpilib.SmartDashboard.putNumber,
+            'String': wpilib.SmartDashboard.putString,
+            'Boolean': wpilib.SmartDashboard.putBoolean,
+            'Data': wpilib.SmartDashboard.putData,
+        }
+        method = method_map[cls]
+        method(f".P212/{topicname}", value)
+
     def log_data(self):
         for pos in ("LF", "RF", "LB", "RB"):
             encoder = getattr(self, f"{pos.lower()}_enc")
-            wpilib.SmartDashboard.putNumber(
-                f"A/{pos} absolute encoder", encoder.absolute_position_degrees)
-            wpilib.SmartDashboard.putNumber(
-                f"A/{pos} absolute encoder", encoder.absolute_position_degrees)
-        wpilib.SmartDashboard.putNumber(
-            "A/NavX gyro fused heading", self.gyro.getFusedHeading())
-        wpilib.SmartDashboard.putNumber(
-            "A/NavX gyro yaw", self.gyro.getYaw())
+            self.set_ntval(
+                f"AbsEnc Pos/{pos}", encoder.absolute_position_degrees)
+        self.set_ntval(
+            "NavX gyro fused heading", self.gyro.getFusedHeading())
+        self.set_ntval(
+            "NavX gyro yaw", self.gyro.getYaw())
         for i, loc in enumerate(('LF', 'RF', 'LB', 'RB')):
             module = self.swerve._modules[i]
-            wpilib.SmartDashboard.putNumber(f"A/AZ/{loc} offset", module._azimuth._offset.degrees())
-            wpilib.SmartDashboard.putNumber(
-                f"A/AZ/{loc} abs pos", module._azimuth._absolute_encoder.absolute_position_degrees)
-            wpilib.SmartDashboard.putNumber(
-                f"A/AZ/{loc} enc pos", module._azimuth._encoder.getPosition())
-
-    def reset_encoders(self):
-        for pos in ("LF", "RF", "LB", "RB"):
-            encoder = getattr(self, f"{pos.lower()}_enc")
-            encoder.reset_zero_position()
-        logger.info("Reset absolute encoders' zero positions")
+            self.set_ntval(
+                f"AZ/AbsEnc Offset {loc}", module._azimuth._offset.degrees())
+            self.set_ntval(
+                f"AZ/AbsEnc Pos {loc}", module._azimuth._absolute_encoder.absolute_position_degrees)
+            self.set_ntval(
+                f"AZ/RelEnc Pos {loc}", module._azimuth._encoder.getPosition())
 
     @staticmethod
     def deadband(value, band):
