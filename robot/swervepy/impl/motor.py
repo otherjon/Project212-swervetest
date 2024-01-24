@@ -13,6 +13,7 @@ from ..abstract.motor import CoaxialDriveComponent, CoaxialAzimuthComponent
 from .. import conversions, u
 from ..abstract.sensor import AbsoluteEncoder
 
+import logging; logger = logging.getLogger("swervepy.impl.motor")
 
 class Falcon500CoaxialDriveComponent(CoaxialDriveComponent):
     @dataclass
@@ -392,8 +393,9 @@ class NEOCoaxialAzimuthComponent(CoaxialAzimuthComponent):
         self._controller.setReference(angle.degrees(), rev.CANSparkMax.ControlType.kPosition)
 
     def reset(self):
-        absolute_position = self._absolute_encoder.absolute_position - self._offset
+        absolute_position = self._absolute_encoder.absolute_position
         self._encoder.setPosition(absolute_position.degrees())
+        logger.info(f"Reset azimuth to {absolute_position.degrees()}")
 
     @property
     def rotational_velocity(self) -> float:

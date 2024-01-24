@@ -189,6 +189,7 @@ class SwerveDrive(commands2.Subsystem):
         return self._kinematics.toChassisSpeeds(module_states)
 
     def reset_modules(self):
+        logger.info("Resetting modules")
         for module in self._modules:
             module.reset()
 
