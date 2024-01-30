@@ -113,7 +113,7 @@ class NavXGyro(Gyro):
 
     @property
     def heading(self) -> Rotation2d:
-        yaw = self.navx.getFusedHeading()
+        yaw = self.navx.getYaw()
         if self.invert:
             yaw = 360 - yaw
         return Rotation2d.fromDegrees(yaw)

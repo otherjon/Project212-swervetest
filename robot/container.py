@@ -124,17 +124,35 @@ class RobotContainer:
         #
         self.swerve = SwerveDrive(
             modules, swerve_gyro, OP.max_speed, OP.max_angular_velocity)
-        self.stick.y().onTrue(  # Y button
-            commands2.cmd.runOnce(self.swerve.reset_modules))
-        #self.stick.a().onTrue(WheelsStraight(self.swerve))  # A button
 
+        def set_speed_limits(transl, rot):
+            logger.info(f"Setting limits to {transl}, {rot}")
+            self.speed_limit_ratio = transl
+            self.angular_velocity_limit_ratio = rot
+        # X button: "low gear", set the speed limits as requested in constants.py
+        self.stick.x().onTrue(commands2.InstantCommand(
+            lambda: set_speed_limits(
+                OP.speed_limit / OP.max_speed,
+                OP.angular_velocity_limit / OP.max_angular_velocity)))
+        # B button: "high gear", set the speed limits to "as fast as possible"
+        self.stick.b().onTrue(commands2.InstantCommand(
+            lambda: set_speed_limits(1.0, 1.0)))
+        # Y button: reset the "down the field" orientation (joystick up)
+        self.stick.y().onTrue(commands2.InstantCommand(
+            lambda: logger.info("Zeroing yaw") and self.gyro.zeroYaw()))
+
+        # START button: tell the encoders that the wheels are straight
+        # (Probably not needed anymore)
+        # TODO: investigate whether we can get rid of this!
         self.stick.start().onTrue(
             commands2.cmd.runOnce(self.setEncodersToStraight))
+
         def showOffsets():
             offsets = {}
             for i, name in enumerate("LF RF LB RB".split()):
                 m = self.swerve._modules[i]._azimuth
                 logger.info(f"{name}: abs={m._absolute_encoder.absolute_position.degrees():6.1f} - offset={m._offset.degrees():6.1f} => enc={m._encoder.getPosition():6.1f}")
+        # RIGHT BUMPER: display the azimuth encoder offset values
         self.stick.rightBumper().onTrue(commands2.cmd.runOnce(showOffsets))
 
         # Set the swerve subsystem's default command to teleoperate using
