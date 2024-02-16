@@ -82,7 +82,7 @@ gyro_param_values = {
     #
     # Add your gyro constructor params here.
     #
-    "invert": False,
+    "invert": True,
 }
 
 drive_component_params_class = drive_component_class.Parameters

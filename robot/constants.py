@@ -61,10 +61,10 @@ elec_data = {
     "RB_encoder_DIO": 1,
     "LB_steer_CAN_ID": 15,
     "LB_drive_CAN_ID": 16,
-    "LB_encoder_DIO": 2,
+    "LB_encoder_DIO": 3,
     "LF_steer_CAN_ID": 17,
     "LF_drive_CAN_ID": 18,
-    "LF_encoder_DIO": 3,
+    "LF_encoder_DIO": 2,
 }
 ELEC = namedtuple("Data", elec_data.keys())(**elec_data)
 
@@ -87,7 +87,7 @@ op_data = {
     # max_speed/max_angular_velocity, and indicates no limit.
     #
     "speed_limit": 1.0 * (u.m / u.s),
-    "angular_velocity_limit": 1.5 * (u.rad / u.s),
+    "angular_velocity_limit": 1.0 * (u.rad / u.s),
 
     # For NEO / SparkMAX, use the following and comment out the Falcon500 values
     "propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
