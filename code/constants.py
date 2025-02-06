@@ -14,13 +14,13 @@ This file defines constants related to your robot.  These constants include:
 
 import math
 from collections import namedtuple
-import rev
+import phoenix5
 from swervepy import u
 
 # Physical constants
 phys_data = {
-    "track_width": (14.75 * u.inch).m_as(u.m),
-    "wheel_base": (14.75 * u.inch).m_as(u.m),
+    "track_width": (23 * u.inch).m_as(u.m),
+    "wheel_base": (23 * u.inch).m_as(u.m),
     "wheel_circumference": 4 * math.pi * u.inch,
 }
 PHYS = namedtuple("Data", phys_data.keys())(**phys_data)
@@ -45,8 +45,8 @@ elec_data = {
 
     # Talon FX motor controllers can set peak_current_duration.
     # SparkMAX motor controllers can't.
-    #"drive_peak_current_duration": 0.01,
-    #"azimuth_peak_current_duration": 0.01,
+    "drive_peak_current_duration": 0.01,
+    "azimuth_peak_current_duration": 0.01,
 
     # time in seconds for propulsion motors to ramp up to full speed
     # reference: https://codedocs.revrobotics.com/java/com/revrobotics/cansparkmax
@@ -90,11 +90,11 @@ op_data = {
     "angular_velocity_limit": 1.0 * (u.rad / u.s),
 
     # For NEO / SparkMAX, use the following and comment out the Falcon500 values
-    "propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
-    "steering_neutral": rev.CANSparkMax.IdleMode.kCoast,
+    #"propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
+    #"steering_neutral": rev.CANSparkMax.IdleMode.kCoast,
     # For Falcon500 / TalonFX, use the following and comment out the NEO values
-    #"propulsion_neutral": phoenix5.NeutralMode.Coast,
-    #"steering_neutral": phoenix5.NeutralMode.Brake,
+    "propulsion_neutral": phoenix5.NeutralMode.Coast,
+    "steering_neutral": phoenix5.NeutralMode.Brake,
 
     # Values to pass to stick.getRawAxis()
     # Set these according to your operator preferences
@@ -132,10 +132,12 @@ sw_data = {
     # Constants for PID control of the propulsion AND steering motors
     # (kP must be non-zero, or azimuth motors won't engage.)
     #"kP": 0.3,   # representative value for Falcon500 motors
-    "propulsion_kP": 0.01,   # representative value for NEO motors
+    "propulsion_kP": 0.3,   # representative value for Falcon500 motors
+    #"propulsion_kP": 0.01,   # representative value for NEO motors
     "propulsion_kI": 0,
     "propulsion_kD": 0,
-    "steering_kP": 0.01,   # representative value for NEO motors
+    "steering_kP": 0.3,   # representative value for Falcon500 motors
+    #"steering_kP": 0.01,   # representative value for NEO motors
     "steering_kI": 0,
     "steering_kD": 0,
 

@@ -1,0 +1,3 @@
+[submodule "code/swervepy"]
+	path = code/swervepy
+	url = ssh://git@github.com/otherjon/swervepy

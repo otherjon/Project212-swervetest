@@ -12,16 +12,18 @@ from swervepy.impl import (
     # Replace these classes with the ones that apply to your robot
     AbsoluteDutyCycleEncoder,
     CoaxialSwerveModule,
-    NEOCoaxialDriveComponent,
-    NEOCoaxialAzimuthComponent,
+    Falcon500CoaxialDriveComponent,
+    Falcon500CoaxialAzimuthComponent,
+    TypicalDriveComponentParameters,
+    TypicalAzimuthComponentParameters,
 )
 from swervepy.impl.sensor import NavXGyro
 
 
 # Define which components you're using (e.g. which motors you're using)
 #
-drive_component_class = NEOCoaxialDriveComponent
-azimuth_component_class = NEOCoaxialAzimuthComponent
+drive_component_class = Falcon500CoaxialDriveComponent
+azimuth_component_class = Falcon500CoaxialAzimuthComponent
 gyro_component_class = NavXGyro
 absolute_encoder_class = AbsoluteDutyCycleEncoder
 
@@ -42,6 +44,8 @@ drive_param_values = {
     "closed_loop_ramp_rate": ELEC.closed_loop_ramp_rate,
     "continuous_current_limit": ELEC.drive_continuous_current_limit,
     "peak_current_limit": ELEC.drive_peak_current_limit,
+    "peak_current_duration": ELEC.drive_peak_current_duration,
+
     "neutral_mode": OP.propulsion_neutral,
     "kP": SW.propulsion_kP,
     "kI": SW.propulsion_kI,
@@ -61,6 +65,8 @@ azimuth_param_values = {
     "ramp_rate": 0,
     "continuous_current_limit": ELEC.azimuth_continuous_current_limit,
     "peak_current_limit": ELEC.azimuth_peak_current_limit,
+    "peak_current_duration": ELEC.azimuth_peak_current_duration,
+
     "neutral_mode": OP.steering_neutral,
     "kP": SW.steering_kP,
     "kI": SW.steering_kI,
@@ -85,8 +91,8 @@ gyro_param_values = {
     "invert": True,
 }
 
-drive_component_params_class = drive_component_class.Parameters
-azimuth_component_params_class = azimuth_component_class.Parameters
+drive_component_params_class = TypicalDriveComponentParameters
+azimuth_component_params_class = TypicalAzimuthComponentParameters
 
 drive_params = drive_component_params_class(**drive_param_values)
 azimuth_params = azimuth_component_params_class(**azimuth_param_values)

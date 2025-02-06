@@ -1,6 +1,6 @@
 import math
 import logging
-logger = logging.getLogger("your.robot")
+logger = logging.getLogger("P212-robot")
 
 import wpilib
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
@@ -13,10 +13,11 @@ from swervepy.impl import CoaxialSwerveModule
 from constants import PHYS, MECH, ELEC, OP, SW
 import components
 
-from commands.wheels_straight import WheelsStraight
 
 class RobotContainer:
     def __init__(self):
+        self.stick = commands2.button.CommandXboxController(OP.joystick_port)
+
         swerve_gyro = components.gyro_component_class(
             **components.gyro_param_values)  # NavXGyro wrapper class
         self.gyro = swerve_gyro.navx  # underlying navx.AHRS object
@@ -94,15 +95,6 @@ class RobotContainer:
             ),
         )
 
-        self.stick = commands2.button.CommandXboxController(0)
-        def wheelsStraight():
-            logger.info("Straightening wheels")
-            for m in modules:
-                m._azimuth.follow_angle(Rotation2d.fromDegrees(0))
-        wheels_straight_cmd = commands2.cmd.run(wheelsStraight)
-        self.stick.a().onTrue(wheels_straight_cmd)
-        self.stick.a().onFalse(
-            commands2.cmd.runOnce(wheels_straight_cmd.cancel))
 
         self.speed_limit_ratio = 1.0
         if OP.speed_limit:
@@ -125,28 +117,6 @@ class RobotContainer:
         self.swerve = SwerveDrive(
             modules, swerve_gyro, OP.max_speed, OP.max_angular_velocity)
 
-        def set_speed_limits(transl, rot):
-            logger.info(f"Setting limits to {transl}, {rot}")
-            self.speed_limit_ratio = transl
-            self.angular_velocity_limit_ratio = rot
-        # X button: "low gear", set the speed limits as requested in constants.py
-        self.stick.x().onTrue(commands2.InstantCommand(
-            lambda: set_speed_limits(
-                OP.speed_limit / OP.max_speed,
-                OP.angular_velocity_limit / OP.max_angular_velocity)))
-        # B button: "high gear", set the speed limits to "as fast as possible"
-        self.stick.b().onTrue(commands2.InstantCommand(
-            lambda: set_speed_limits(1.0, 1.0)))
-        # Y button: reset the "down the field" orientation (joystick up)
-        self.stick.y().onTrue(commands2.InstantCommand(
-            lambda: logger.info("Zeroing yaw") and self.gyro.zeroYaw()))
-
-        # START button: tell the encoders that the wheels are straight
-        # (Probably not needed anymore)
-        # TODO: investigate whether we can get rid of this!
-        self.stick.start().onTrue(
-            commands2.cmd.runOnce(self.setEncodersToStraight))
-
         def showOffsets():
             offsets = {}
             for i, name in enumerate("LF RF LB RB".split()):
@@ -168,42 +138,10 @@ class RobotContainer:
             )
         )
 
-    def setEncodersToStraight(self):
-        logger.info("Resetting encoders assuming wheels have been manually straightened")
-        for module in self.swerve._modules:
-            az = module._azimuth
-            az._offset = az._absolute_encoder.absolute_position
-            logger.info(f" * offset = {az._offset.degrees()}")
-            az.reset()
-
-    def set_ntval(self, topicname, value, cls='Double'):
-        method_map = {
-            'Double': wpilib.SmartDashboard.putNumber,
-            'Int': wpilib.SmartDashboard.putNumber,
-            'String': wpilib.SmartDashboard.putString,
-            'Boolean': wpilib.SmartDashboard.putBoolean,
-            'Data': wpilib.SmartDashboard.putData,
-        }
-        method = method_map[cls]
-        method(f".P212/{topicname}", value)
-
     def log_data(self):
         for pos in ("LF", "RF", "LB", "RB"):
             encoder = getattr(self, f"{pos.lower()}_enc")
-            self.set_ntval(
-                f"AbsEnc Pos/{pos}", encoder.absolute_position_degrees)
-        self.set_ntval(
-            "NavX gyro fused heading", self.gyro.getFusedHeading())
-        self.set_ntval(
-            "NavX gyro yaw", self.gyro.getYaw())
-        for i, loc in enumerate(('LF', 'RF', 'LB', 'RB')):
-            module = self.swerve._modules[i]
-            self.set_ntval(
-                f"AZ/AbsEnc Offset {loc}", module._azimuth._offset.degrees())
-            self.set_ntval(
-                f"AZ/AbsEnc Pos {loc}", module._azimuth._absolute_encoder.absolute_position_degrees)
-            self.set_ntval(
-                f"AZ/RelEnc Pos {loc}", module._azimuth._encoder.getPosition())
+            wpilib.SmartDashboard.putNumber(f"{pos} absolute encoder", encoder.absolute_position_degrees)
 
     @staticmethod
     def deadband(value, band):
