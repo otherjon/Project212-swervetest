@@ -14,7 +14,7 @@ This file defines constants related to your robot.  These constants include:
 
 import math
 from collections import namedtuple
-import phoenix5
+import phoenix6
 from swervepy import u
 
 # Physical constants
@@ -79,8 +79,31 @@ JOYSTICK_AXES = {
 op_data = {
     # These maximum parameters reflect the maximum physically possible, not the
     # desired maximum limit.
+
+    # Max speed: see https://www.swervedrivespecialties.com/products/mk4i-swerve-module?variant=47316033798445
+    # Max speed calculation (assuming no friction, no load):
+    #    5800 motor RPM    (Kraken free speed)
+    #    * 1 motor RPS / 60 motor RPM   (convert minutes to seconds)
+    #    * 1 drive wheel RPS / 6.75 motor RPS   (SDS Mk4i L2 gear ratio)
+    #    * (4*pi) inch/sec / 1 drive wheel RPS   (4" wheels)
+    #    * 1 meter / 39.37 inch
     "max_speed": 4.5 * (u.m / u.s),
-    "max_angular_velocity": 11.5 * (u.rad / u.s),
+
+    # Max angular velocity calculation (assuming no friction, no load):
+    # The robot's angular velocity is measured when the robot spins in a circle,
+    #   with each of its four swerve modules driving in a different direction.
+    # Note a 30-inch-square robot typically measures about 24 inches
+    #   wheel-to-wheel, so the spinning circle has a diameter of 24*sqrt(2)
+    #   inches, or a circumference of pi * 24*sqrt(2) inches.
+    # Replace "24" with the actual wheel base / track width (or replace
+    #   "24*sqrt(2)" with the actual spin-circle diameter) in the calculation
+    #   below.
+    #
+    #    4.5 m/s  (max speed of each module)
+    #    * 39.37 inches / 1 meter   (convert meters to inches)
+    #    * 1 revolution / (pi * 24*sqrt(2) inches)     (spin circumference)
+    #    * (2*pi) radians / 1 revolution
+    "max_angular_velocity": 10.4 * (u.rad / u.s),
 
     # You can limit how fast your robot moves (e.g. during testing) using the
     # following parameters.  Setting to None is the same as setting to
@@ -93,8 +116,10 @@ op_data = {
     #"propulsion_neutral": rev.CANSparkMax.IdleMode.kCoast,
     #"steering_neutral": rev.CANSparkMax.IdleMode.kCoast,
     # For Falcon500 / TalonFX, use the following and comment out the NEO values
-    "propulsion_neutral": phoenix5.NeutralMode.Coast,
-    "steering_neutral": phoenix5.NeutralMode.Brake,
+    "propulsion_neutral": phoenix6.signals.NeutralModeValue.COAST,
+    "steering_neutral": phoenix6.signals.NeutralModeValue.BRAKE,
+
+    "joystick_port": 0,
 
     # Values to pass to stick.getRawAxis()
     # Set these according to your operator preferences

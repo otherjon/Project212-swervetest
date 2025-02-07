@@ -55,7 +55,7 @@ class RobotContainer:
                     azimuth_offset=Rotation2d.fromDegrees(lf_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.lf_enc),
-                placement=Translation2d(*components.module_locations['LF']),
+                placement=Translation2d(*components.module_locations["LF"]),
             ),
             # Right Front module
             CoaxialSwerveModule(
@@ -67,7 +67,7 @@ class RobotContainer:
                     azimuth_offset=Rotation2d.fromDegrees(rf_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.rf_enc),
-                placement=Translation2d(*components.module_locations['RF']),
+                placement=Translation2d(*components.module_locations["RF"]),
             ),
             # Left Back module
             CoaxialSwerveModule(
@@ -79,7 +79,7 @@ class RobotContainer:
                     azimuth_offset=Rotation2d.fromDegrees(lb_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.lb_enc),
-                placement=Translation2d(*components.module_locations['LB']),
+                placement=Translation2d(*components.module_locations["LB"]),
             ),
             # Right Back module
             CoaxialSwerveModule(
@@ -91,7 +91,7 @@ class RobotContainer:
                     azimuth_offset=Rotation2d.fromDegrees(rb_enc_pos),
                     parameters=components.azimuth_params,
                     absolute_encoder=self.rb_enc),
-                placement=Translation2d(*components.module_locations['RB']),
+                placement=Translation2d(*components.module_locations["RB"]),
             ),
         )
 
@@ -180,22 +180,34 @@ class RobotContainer:
 
     def get_autonomous_command(self):
         follower_params = TrajectoryFollowerParameters(
-            max_drive_velocity=4.5 * (u.m / u.s),
             theta_kP=1,
             xy_kP=1,
+            drive_open_loop=SW.open_loop
         )
 
-        bezier_points = PathPlannerPath.bezierFromPoses([
+        waypoints = PathPlannerPath.waypointsFromPoses([
             Pose2d(1.0, 1.0, Rotation2d.fromDegrees(0)),
             Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0)),
             Pose2d(5.0, 3.0, Rotation2d.fromDegrees(90)),
         ])
         path = PathPlannerPath(
-            bezier_points,
-            PathConstraints(3.0, 3.0, 2 * math.pi, 4 * math.pi),
+            waypoints,
+            PathConstraints(
+                # https://pathplanner.dev/api/python/pathplannerlib/path/#pathconstraints
+                OP.speed_limit,                                       # m/s
+                OP.speed_limit / ELEC.open_loop_ramp_rate,            # m/s^2
+                OP.angular_velocity_limit,                            # rad/s
+                OP.angular_velocity_limit / ELEC.open_loop_ramp_rate  # rad/s^2
+            ),
+            None,
             GoalEndState(0.0, Rotation2d.fromDegrees(-90)),     # Zero velocity and facing 90 degrees clockwise
         )
 
+        # Or you can load a path from a named file created with the PathPlanner
+        # utility, stored in deploy/pathplanner/paths/yourpathname.path:
+        #
+        #path = PathPlannerPath.fromPathFile("yourpathname")
+
         first_path = True  # reset robot pose to initial pose in trajectory
-        open_loop = True   # don't use built-in motor feedback for velocity
-        return self.swerve.follow_trajectory_command(path, follower_params, first_path, open_loop)
+        return self.swerve.follow_trajectory_command(
+            path, follower_params, first_path)
