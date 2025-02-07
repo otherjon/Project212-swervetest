@@ -1,25 +1,26 @@
-# This directory, except for this INFO file, is a clone of the swervepy repo
-# available on GitHub from EWall25.  When creating a new swerve drive robot,
-# the following initial steps are performed:
+# This is a simple example robot that uses the swervepy repo available on
+# GitHub from EWall25.  When creating a new swerve drive robot, the following
+# initial steps are required:
 
 # (create the repo on GitHub)
-# (clone the new repo locally)
+# (use the new-project.sh script from the SimpleCommandRobot repo to create a
+#  new project locally)
 # (change into the new repo directory)
 
-# Add a copy of the cloned swervepy repo to the new robot's repo
-git clone https://github.com/EWall25/swervepy
+# Add the swervepy repo as a Git "submodule"
+git submodule add https://github.com/EWall25/swervepy code/swervepy_module
 
-# Rename the swervepy repo, so that we can import swervepy
-mv -i swervepy cloned-swervepy
-ln -s cloned-swervepy/swervepy .
+# Create a link to that submodule, so that you can import the library
+cd code
+ln -s swervepy_submodule/swervepy swervepy
 
-# Add swervepy content to new robot's .gitignore -- we're just cloning it,
-# not editing it
-printf "\n\n# Just clone swervepy repo, don't track it in Git\ncloned-swervepy/.editorconfig\ncloned-swervepy/.gitignore\ncloned-swervepy/LICENSE\ncloned-swervepy/README.md\ncloned-swervepy/example_robot/\ncloned-swervepy/pyproject.toml\ncloned-swervepy/swervepy/\n\n" >> .gitignore 
+# You might want to start your robot code by using swervepy's example robot
+# as a template:
 
-# Update the new robot repo with our initial changes
-git add .gitignore
-git add cloned-swervepy/INFO
-git add swervepy
+cp swervepy_module/example_robot/[cpr]* .
+git add [cpr]*
 git commit
 
+# And of course don't forget to do this...
+cd ..
+robotpy --main code sync
