@@ -115,7 +115,9 @@ class RobotContainer:
         # and some options
         #
         self.swerve = SwerveDrive(
-            modules, swerve_gyro, OP.max_speed, OP.max_angular_velocity)
+            modules, swerve_gyro, OP.max_speed, OP.max_angular_velocity,
+            path_following_params=self.get_trajectory_parameters()
+        )
 
         def showOffsets():
             offsets = {}
@@ -178,27 +180,37 @@ class RobotContainer:
             raw_stick_val, invert=invert,
             limit_ratio=self.angular_velocity_limit_ratio)
 
-    def get_autonomous_command(self):
-        follower_params = TrajectoryFollowerParameters(
+    def get_trajectory_parameters(self):
+        return TrajectoryFollowerParameters(
             theta_kP=1,
             xy_kP=1,
             drive_open_loop=SW.open_loop
         )
 
+    def get_autonomous_command(self):
         waypoints = PathPlannerPath.waypointsFromPoses([
             Pose2d(1.0, 1.0, Rotation2d.fromDegrees(0)),
             Pose2d(3.0, 1.0, Rotation2d.fromDegrees(0)),
             Pose2d(5.0, 3.0, Rotation2d.fromDegrees(90)),
         ])
-        path = PathPlannerPath(
-            waypoints,
-            PathConstraints(
-                # https://pathplanner.dev/api/python/pathplannerlib/path/#pathconstraints
+        constraints = [
+            # https://pathplanner.dev/api/python/pathplannerlib/path/#pathconstraints
+            # PathConstraints requires the maximum linear velocity, linear
+            # acceleration, angular velocity, and angular acceleration that
+            # will be allowed on the path.  We can compute these from our
+            # speed limits and ramp times, but we need to pass in only the
+            # magnitudes (float values) of the resulting values.
+            #
+            val.magnitude for val in (
                 OP.speed_limit,                                       # m/s
                 OP.speed_limit / ELEC.open_loop_ramp_rate,            # m/s^2
                 OP.angular_velocity_limit,                            # rad/s
                 OP.angular_velocity_limit / ELEC.open_loop_ramp_rate  # rad/s^2
-            ),
+            )
+        ]
+        path = PathPlannerPath(
+            waypoints,
+            PathConstraints(*constraints),
             None,
             GoalEndState(0.0, Rotation2d.fromDegrees(-90)),     # Zero velocity and facing 90 degrees clockwise
         )
@@ -210,4 +222,4 @@ class RobotContainer:
 
         first_path = True  # reset robot pose to initial pose in trajectory
         return self.swerve.follow_trajectory_command(
-            path, follower_params, first_path)
+            path, self.get_trajectory_parameters(), first_path)
